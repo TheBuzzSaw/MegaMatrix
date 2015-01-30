@@ -100,7 +100,12 @@ void DoThreadedMultiply(size_t matrixEdge, size_t threadCount)
 
     vector<thread> threads;
 
-    for (auto job : jobs) threads.push_back(thread(JobThread, job));
+    for (auto job : jobs)
+    {
+        if (job.cellCount > 0)
+            threads.push_back(thread(JobThread, job));
+    }
+
     for (auto& t : threads) t.join();
 
     auto finish = chrono::steady_clock::now();
@@ -118,11 +123,19 @@ void DoThreadedMultiply(size_t matrixEdge, size_t threadCount)
     }
     else
     {
-        cout << "[A]\n" << a << "[B]\n" << b << "[EXPECTED]\n" << d << "[ACTUAL]\n" << c;
+        cout
+            << "[A]\n"
+            << a
+            << "[B]\n"
+            << b
+            << "[EXPECTED]\n"
+            << d
+            << "[ACTUAL]\n"
+            << c;
     }
 }
 
-void MultiplyHugeMatrices()
+void MultiplyHugeMatrices(bool cacheFriendly)
 {
     ofstream fout("matrix_result.txt", ofstream::binary);
 
@@ -132,12 +145,19 @@ void MultiplyHugeMatrices()
         return;
     }
 
-    mt19937_64 generator;
+    auto seed = chrono::system_clock::now().time_since_epoch().count();
+    mt19937_64 generator(seed);
     uniform_int_distribution<int> distribution(-255, 255);
 
-    const size_t N = 3000;
+    const size_t N = 1000;
     auto a = Matrix<int>::RowMajor(N, N);
     auto b = Matrix<int>::ColumnMajor(N, N);
+
+    if (!cacheFriendly)
+    {
+        a.ReinterpretAsColumnMajor();
+        b.ReinterpretAsRowMajor();
+    }
 
     cout << "Generating matrices..." << endl;
 
@@ -167,7 +187,9 @@ void MultiplyHugeMatrices()
 int main(int argc, char** argv)
 {
     //TestBasicMultiplication();
-    //MultiplyHugeMatrices();
+    //MultiplyHugeMatrices(true);
+    MultiplyHugeMatrices(false);
+    return 0;
 
     if (argc > 2)
     {
@@ -176,9 +198,11 @@ int main(int argc, char** argv)
 
         size_t matrixEdge = 0;
         size_t threadCount = 0;
-        ss >> matrixEdge >> threadCount;
 
-        DoThreadedMultiply(matrixEdge, threadCount);
+        if (ss >> matrixEdge >> threadCount)
+            DoThreadedMultiply(matrixEdge, threadCount);
+        else
+            cerr << "invalid arguments\n";
     }
     else
     {

@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <cstring>
 #include <cstdint>
 
 namespace Kelly
@@ -22,8 +23,8 @@ namespace Kelly
             , _columnCount(columnCount)
             , _rowIndexMultiplier(rowIndexMultiplier)
             , _columnIndexMultiplier(columnIndexMultiplier)
+            , _values(rowCount * columnCount)
         {
-            _values.resize(rowCount * columnCount);
         }
 
         Matrix(const Matrix&) = default;
@@ -100,6 +101,8 @@ namespace Kelly
             return _values[index];
         }
 
+        const T* Data() const { return _values.data(); }
+
         size_t RowCount() const { return _rowCount; }
         size_t ColumnCount() const { return _columnCount; }
         size_t CellCount() const { return _values.size(); }
@@ -107,6 +110,18 @@ namespace Kelly
         bool IsColumnMajor() const { return _rowIndexMultiplier == 1; }
 
         Matrix Copy() const { return Matrix(*this); }
+
+        void ReinterpretAsRowMajor()
+        {
+            _rowIndexMultiplier = _columnCount;
+            _columnIndexMultiplier = 1;
+        }
+
+        void ReinterpretAsColumnMajor()
+        {
+            _columnIndexMultiplier = _rowCount;
+            _rowIndexMultiplier = 1;
+        }
     };
 
     template<typename T>
@@ -144,6 +159,9 @@ namespace Kelly
     {
         if (a.RowCount() == b.RowCount() && a.ColumnCount() == b.ColumnCount())
         {
+            if (a.IsRowMajor() == b.IsRowMajor())
+                return !memcmp(a.Data(), b.Data(), a.CellCount() * sizeof(T));
+
             for (size_t i = 0; i < a.RowCount(); ++i)
             {
                 for (size_t j = 0; j < a.ColumnCount(); ++j)
@@ -162,6 +180,46 @@ namespace Kelly
     bool operator!=(const Matrix<T>& a, const Matrix<T>& b)
     {
         return !(a == b);
+    }
+
+    template<typename T>
+    Matrix<T> ToRowMajor(const Matrix<T>& matrix)
+    {
+        if (matrix.IsRowMajor()) return matrix.Copy();
+
+        auto result = Matrix<T>::RowMajor(
+            matrix.RowCount(),
+            matrix.ColumnCount());
+
+        for (size_t i = 0; i < result.RowCount(); ++i)
+        {
+            for (size_t j = 0; j < result.ColumnCount(); ++j)
+            {
+                result(i, j) = matrix(i, j);
+            }
+        }
+
+        return result;
+    }
+
+    template<typename T>
+    Matrix<T> ToColumnMajor(const Matrix<T>& matrix)
+    {
+        if (matrix.IsColumnMajor()) return matrix.Copy();
+
+        auto result = Matrix<T>::ColumnMajor(
+            matrix.RowCount(),
+            matrix.ColumnCount());
+
+        for (size_t i = 0; i < result.RowCount(); ++i)
+        {
+            for (size_t j = 0; j < result.ColumnCount(); ++j)
+            {
+                result(i, j) = matrix(i, j);
+            }
+        }
+
+        return result;
     }
 
     template<typename T>

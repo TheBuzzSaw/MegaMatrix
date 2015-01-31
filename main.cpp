@@ -4,6 +4,7 @@
 #include <random>
 #include <chrono>
 #include <thread>
+#include <sstream>
 using namespace std;
 using namespace Kelly;
 
@@ -37,16 +38,13 @@ void JobThread(MathJob job)
     size_t row = job.startIndex / c.ColumnCount();
     size_t column = job.startIndex % c.ColumnCount();
 
-    //cerr << "Beginning thread...\n";
-    //cerr << "row " << row << " col " << column << " count " << job.cellCount << '\n';
-
     for (size_t i = row; i < c.RowCount(); ++i)
     {
         for (size_t j = column; j < c.ColumnCount(); ++j)
         {
             if (job.cellCount < 1) return;
-
             --job.cellCount;
+
             int total = 0;
 
             for (size_t k = 0; k < a.ColumnCount(); ++k)
@@ -56,6 +54,8 @@ void JobThread(MathJob job)
 
             c(i, j) = total;
         }
+
+        column = 0;
     }
 }
 
@@ -113,9 +113,13 @@ void DoThreadedMultiply(size_t matrixEdge, size_t threadCount)
     auto d = a * b;
 
     if (c == d)
-        cout << "They match!" << endl;
+    {
+        cout << "Answer is correct." << endl;
+    }
     else
-        cout << "Quit programming right now..." << endl;
+    {
+        cout << "[A]\n" << a << "[B]\n" << b << "[EXPECTED]\n" << d << "[ACTUAL]\n" << c;
+    }
 }
 
 void MultiplyHugeMatrices()
@@ -164,6 +168,22 @@ int main(int argc, char** argv)
 {
     //TestBasicMultiplication();
     //MultiplyHugeMatrices();
-    DoThreadedMultiply(3000, 6);
+
+    if (argc > 2)
+    {
+        stringstream ss;
+        ss << argv[1] << ' ' << argv[2];
+
+        size_t matrixEdge = 0;
+        size_t threadCount = 0;
+        ss >> matrixEdge >> threadCount;
+
+        DoThreadedMultiply(matrixEdge, threadCount);
+    }
+    else
+    {
+        cerr << "usage: " << argv[0] << " <matrix-size> <thread-count>";
+    }
+
     return 0;
 }

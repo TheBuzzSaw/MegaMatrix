@@ -140,6 +140,31 @@ namespace Kelly
     }
 
     template<typename T>
+    bool operator==(const Matrix<T>& a, const Matrix<T>& b)
+    {
+        if (a.RowCount() == b.RowCount() && a.ColumnCount() == b.ColumnCount())
+        {
+            for (size_t i = 0; i < a.RowCount(); ++i)
+            {
+                for (size_t j = 0; j < a.ColumnCount(); ++j)
+                {
+                    if (a(i, j) != b(i, j)) return false;
+                }
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    template<typename T>
+    bool operator!=(const Matrix<T>& a, const Matrix<T>& b)
+    {
+        return !(a == b);
+    }
+
+    template<typename T>
     std::ostream& operator<<(std::ostream& stream, const Matrix<T>& matrix)
     {
         if (matrix.CellCount() > 0)

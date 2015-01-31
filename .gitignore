@@ -1,0 +1,40 @@
+# Project Output
+matrix_result.txt
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+
+# VCS nonsense
+.svn/
+CVS/
+
+# Codeblocks nonsense
+obj/
+bin/
+*.[oa]
+*.depend
+*.layout
+*.cbTemp
+
+# SDL nonsense
+stdout.txt
+stderr.txt
+
+# SCons nonsense
+.sconsign.dblite
+
+# Builds
+*.bin
+

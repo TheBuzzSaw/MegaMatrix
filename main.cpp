@@ -59,7 +59,7 @@ void JobThread(MathJob job)
     }
 }
 
-void DoThreadedMultiply(size_t matrixEdge, size_t threadCount)
+void DoThreadedMultiply(size_t matrixEdge, size_t threadCount, bool checkAnswer)
 {
     if (matrixEdge < 1) matrixEdge = 1;
     if (threadCount < 1) threadCount = 1;
@@ -111,27 +111,30 @@ void DoThreadedMultiply(size_t matrixEdge, size_t threadCount)
     auto finish = chrono::steady_clock::now();
     auto span = chrono::duration_cast<chrono::duration<double>>(finish - start);
 
-    cout << "Finished in " << span.count() << " seconds." << endl;
+    cout << "Finished in " << span.count() << " seconds using " << threads.size() << " threads." << endl;
 
-    cout << "Checking answer..." << endl;
-
-    auto d = a * b;
-
-    if (c == d)
+    if (checkAnswer)
     {
-        cout << "Answer is correct." << endl;
-    }
-    else
-    {
-        cout
-            << "[A]\n"
-            << a
-            << "[B]\n"
-            << b
-            << "[EXPECTED]\n"
-            << d
-            << "[ACTUAL]\n"
-            << c;
+        cout << "Checking answer..." << endl;
+
+        auto d = a * b;
+
+        if (c == d)
+        {
+            cout << "Answer is correct." << endl;
+        }
+        else
+        {
+            cout
+                << "[A]\n"
+                << a
+                << "[B]\n"
+                << b
+                << "[EXPECTED]\n"
+                << d
+                << "[ACTUAL]\n"
+                << c;
+        }
     }
 }
 
@@ -188,8 +191,8 @@ int main(int argc, char** argv)
 {
     //TestBasicMultiplication();
     //MultiplyHugeMatrices(true);
-    MultiplyHugeMatrices(false);
-    return 0;
+    //MultiplyHugeMatrices(false);
+    //return 0;
 
     if (argc > 2)
     {
@@ -200,7 +203,7 @@ int main(int argc, char** argv)
         size_t threadCount = 0;
 
         if (ss >> matrixEdge >> threadCount)
-            DoThreadedMultiply(matrixEdge, threadCount);
+            DoThreadedMultiply(matrixEdge, threadCount, false);
         else
             cerr << "invalid arguments\n";
     }
